@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "adcircmesh"
+version = "0.1.0"
+description = "Editor visual de mallas no estructuradas con control de calidad para ADCIRC y SWAN"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Liesvy Valladares" }]
+keywords = ["adcirc", "swan", "unstructured-mesh", "fort.14", "2dm",
+            "mesh-generation", "mesh-quality", "coastal-modeling",
+            "storm-surge", "hydrodynamics"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Hydrology",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+dependencies = [
+    "PySide6>=6.6",
+    "pyqtgraph>=0.13",
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "matplotlib>=3.7",
+]
+
+[project.scripts]
+adcircmesh = "adcircmesh.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/liesvyvall/AdcircMesh"
+Issues = "https://github.com/liesvyvall/AdcircMesh/issues"
+
+[tool.setuptools.packages.find]
+include = ["adcircmesh*"]

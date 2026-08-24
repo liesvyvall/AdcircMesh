@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+build/
+dist/
+*.egg-info/
+.venv/
+venv/
+
+# Mallas de ejemplo: se descargan con examples/get_example.py, no se redistribuyen
+examples/*.14
+examples/*.2dm
+
+# Salidas de trabajo
+*.out
+reporte_qc.txt
