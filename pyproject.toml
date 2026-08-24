@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "adcircmesh"
 version = "0.1.0"
-description = "Editor visual de mallas no estructuradas con control de calidad para ADCIRC y SWAN"
+description = "Visual editor for unstructured meshes with quality control for ADCIRC and SWAN"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }

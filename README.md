@@ -1,15 +1,14 @@
 # AdcircMesh
 
-**Editor visual de mallas no estructuradas con control de calidad para ADCIRC y SWAN.**
+**Visual editor for unstructured meshes with quality control for ADCIRC and SWAN.**
 
-Aplicación de escritorio en Python para editar a mano mallas triangulares no
-estructuradas y aplicarles los chequeos que exigen ADCIRC y SWAN antes de
-correr un modelo. Es una alternativa libre al flujo de trabajo de SMS (Aquaveo)
-para esta tarea concreta.
+A Python desktop application for hand-editing unstructured triangular meshes and
+running the checks that ADCIRC and SWAN require before a model run. It is a free
+alternative to the SMS (Aquaveo) workflow for this particular task.
 
-![Vista general](docs/captura-general.png)
+![Overview](docs/captura-general.png)
 
-## Instalación
+## Installation
 
 ```bash
 git clone https://github.com/liesvyvall/AdcircMesh.git
@@ -17,161 +16,162 @@ cd AdcircMesh
 pip install -r requirements.txt
 ```
 
-O como paquete instalable:
+Or as an installable package:
 
 ```bash
 pip install -e .
-adcircmesh malla.14
+adcircmesh mesh.14
 ```
 
-Requiere Python ≥ 3.10. Probado en macOS (Apple Silicon); PySide6 y pyqtgraph
-funcionan igual en Linux y Windows.
+Requires Python ≥ 3.10. Tested on macOS (Apple Silicon); PySide6 and pyqtgraph
+work the same on Linux and Windows.
 
-## Uso
+## Usage
 
 ```bash
-python examples/get_example.py        # descarga una malla de prueba
+python examples/get_example.py        # download a test mesh
 python adcircmesh.py examples/shinnecock_inlet.14
 ```
 
-La malla de ejemplo **no viene en el repositorio**: se descarga bajo demanda del
-[ADCIRC test suite](https://github.com/adcirc/adcirc-testsuite), que se
-distribuye sin fichero de licencia. El caso `shinnecock_inlet` (Shinnecock
-Inlet, Long Island, Nueva York) es el ejemplo canónico de ADCIRC y de
-ADCIRC+SWAN acoplado: 3.070 nodos y 5.780 elementos.
+The sample mesh is **not bundled in this repository**: it is downloaded on
+demand from the [ADCIRC test suite](https://github.com/adcirc/adcirc-testsuite),
+which ships without a license file. The `shinnecock_inlet` case (Shinnecock
+Inlet, Long Island, New York) is the canonical ADCIRC and coupled ADCIRC+SWAN
+example: 3,070 nodes and 5,780 elements.
 
-## Qué hace
+The interface is in Spanish.
 
-### Formatos
+## What it does
 
-Lee y escribe `fort.14` de ADCIRC con sus secciones completas
-(NOPE / NETA / NVDLL / NBOU / NVEL / IBTYPE, incluidos los datos extra por nodo
-de las barreras) y `.2dm` de SMS, convirtiendo elevación ↔ profundidad. El ida
-y vuelta es exacto en coordenadas, conectividad y fronteras.
+### Formats
 
-### Edición manual
+Reads and writes ADCIRC `fort.14` with its complete sections
+(NOPE / NETA / NVDLL / NBOU / NVEL / IBTYPE, including the per-node extra data
+of barrier boundaries) and SMS `.2dm`, converting elevation ↔ depth. The round
+trip is exact in coordinates, connectivity and boundaries.
 
-| Tecla | Herramienta | Qué hace |
+### Manual editing
+
+| Key | Tool | What it does |
 |---|---|---|
-| `Esc` | Navegar | desplazar y zoom |
-| `N` / `E` | Seleccionar nodos / elementos | clic o rectángulo; `Shift` suma, `Ctrl` resta |
-| `M` | Mover nodo | arrastrar con vista previa en vivo |
-| `A` | Añadir nodo | subdivide en 3 el elemento donde caes, interpolando la batimetría por coordenadas baricéntricas |
-| `D` / `X` | Borrar nodo / elemento | |
-| `S` | Dividir arista | inserta el punto medio y parte los elementos incidentes |
-| `F` | Voltear arista | comprueba convexidad antes de aplicar |
-| `C` | Crear elemento | clic en 3 nodos |
-| `G` | Fusionar nodos | colapsa el segundo sobre el primero |
+| `Esc` | Navigate | pan and zoom |
+| `N` / `E` | Select nodes / elements | click or rubber band; `Shift` adds, `Ctrl` subtracts |
+| `M` | Move node | drag with live preview |
+| `A` | Add node | splits the element you click into 3, interpolating bathymetry by barycentric coordinates |
+| `D` / `X` | Delete node / element | |
+| `S` | Split edge | inserts the midpoint and splits the incident elements |
+| `F` | Swap edge | checks convexity before applying |
+| `C` | Create element | click three nodes |
+| `G` | Merge nodes | collapses the second onto the first |
 
-Todo pasa por una pila de deshacer: **`Ctrl+Z` / `Ctrl+Shift+Z` revierten
-cualquier cosa**, incluida una reparación automática completa como un solo paso.
+Everything goes through an undo stack: **`Ctrl+Z` / `Ctrl+Shift+Z` revert
+anything**, including a full automatic repair as a single step.
 
-### Control de calidad (`F5`)
+### Quality control (`F5`)
 
-![Control de calidad](docs/captura-calidad.png)
+![Quality control](docs/captura-calidad.png)
 
-34 chequeos agrupados en cinco familias. Cada uno guarda los **índices
-infractores**: al seleccionarlo se resaltan en el mapa, con doble clic haces
-zoom, y los botones `◀ ▶` recorren los casos uno por uno.
+34 checks in five families. Each one stores the **offending indices**: selecting
+it highlights them on the map, double-clicking zooms to them, and the `◀ ▶`
+buttons step through the cases one at a time.
 
-- **Integridad** — índices fuera de rango, nodos repetidos, nodos y elementos duplicados, huérfanos
-- **Topología** — aristas no-manifold, frontera no recorrible, componentes desconectadas, elementos colgantes, valencia
-- **Geometría** — orientación CW (ADCIRC exige CCW), área nula, slivers, ángulo mínimo y máximo, elementos con sus tres nodos en la frontera, gradación de tamaño
-- **ADCIRC / SWAN** — violación de CFL para un `dt` objetivo, profundidades ≤ 0 y < −10 m, NaN, saltos batimétricos bruscos entre nodos vecinos
-- **Fronteras** — NOPE = 0, nodos fuera de rango, declarados que no están en el borde real, nodos del borde real sin declarar, solapes entre nodestrings
+- **Integrity** — out-of-range indices, repeated nodes, duplicate nodes and elements, orphans
+- **Topology** — non-manifold edges, non-traversable boundary, disconnected components, dangling elements, valence
+- **Geometry** — CW orientation (ADCIRC requires CCW), zero area, slivers, minimum and maximum angle, elements with all three nodes on the boundary, size gradation
+- **ADCIRC / SWAN** — CFL violation for a target `dt`, depths ≤ 0 and < −10 m, NaN, abrupt bathymetric jumps between neighbouring nodes
+- **Boundaries** — NOPE = 0, out-of-range nodes, declared nodes not on the real border, real border nodes left undeclared, overlaps between nodestrings
 
-Los umbrales (paso de tiempo, ángulo mínimo, valencia, profundidad, gradación)
-se ajustan en el panel. El reporte se exporta a texto.
+Thresholds (time step, minimum angle, valence, depth, gradation) are set in the
+panel. The report exports to text.
 
-### Color por campo
+### Colour by field
 
-Relleno continuo por profundidad, calidad de forma, ángulo mínimo o máximo,
-área, arista mínima, `dt` máximo por CFL, gradación o valencia, con paleta y
-rango configurables.
+Continuous fill by depth, shape quality, minimum or maximum angle, area,
+minimum edge, CFL-limited `dt`, gradation or valence, with configurable colormap
+and range.
 
-### Reparación
+### Repair
 
-Menú **Malla**: soldar nodos coincidentes, eliminar degenerados, duplicados y
-área nula, orientar a CCW, conservar la componente principal, hacer la frontera
-recorrible, quitar elementos colgantes, rellenar huecos internos falsos, voltear
-aristas de baja calidad, suavizado laplaciano local con garantía de no invertir
-elementos y con la costa deslizando tangencialmente, eliminar slivers de
-frontera, **renumerar con Cuthill-McKee inverso** y compactar. Hay además un
-pipeline automático con las etapas seleccionables.
+**Mesh** menu: weld coincident nodes, remove degenerate, duplicate and
+zero-area elements, orient to CCW, keep the largest connected component, make
+the boundary traversable, drop dangling elements, fill spurious internal holes,
+flip low-quality edges, local Laplacian smoothing that guarantees no element
+inverts and lets the coastline slide tangentially, remove boundary slivers,
+**renumber with reverse Cuthill-McKee**, and compact. There is also an automatic
+pipeline with selectable stages.
 
-El renumerado RCM importa más de lo que parece: en una malla del Pacífico
-mexicano de 243.315 elementos bajó el ancho de banda de 124.609 a 901.
+RCM renumbering matters more than it sounds: on a 243,315-element mesh of the
+Mexican Pacific it cut the bandwidth from 124,609 to 901.
 
-### Fronteras (nodestrings)
+### Boundaries (nodestrings)
 
-![Edición](docs/captura-edicion.png)
+![Editing](docs/captura-edicion.png)
 
-Panel con la lista de fronteras, su tipo y su IBTYPE. Se pueden generar
-automáticamente (detecta el tramo oceánico por profundidad y tamaño de arista,
-lo extiende hasta la costa y marca las islas), crear desde una selección de
-nodos (que se ordenan siguiendo la cadena de aristas de frontera), cambiarles el
-tipo o borrarlas.
+A panel lists the boundaries with their type and IBTYPE. They can be generated
+automatically (detecting the ocean stretch by depth and edge size, extending it
+to the coastline and flagging islands), created from a node selection (ordered
+by following the chain of boundary edges), retyped, or deleted.
 
-## Arquitectura
+## Architecture
 
 ```
 adcircmesh/
-  core/          # sin dependencia de Qt: usable desde script
-    mesh.py      # clase Mesh, proyección CPP, adyacencias CSR, picking
-    meshio.py    # fort.14 y 2dm
-    quality.py   # motor de QC, devuelve los índices infractores
-    edit.py      # operaciones de edición reversibles
-    repair.py    # reparaciones globales y fronteras automáticas
+  core/          # Qt-free: usable from scripts
+    mesh.py      # Mesh class, CPP projection, CSR adjacencies, picking
+    meshio.py    # fort.14 and 2dm
+    quality.py   # QC engine, returns the offending indices
+    edit.py      # reversible editing operations
+    repair.py    # global repairs and automatic boundaries
   gui/
-    render.py    # lienzo pyqtgraph + ráster Agg para el relleno
-    panels.py    # paneles acoplables
-    commands.py  # puente con la pila de deshacer de Qt
+    render.py    # pyqtgraph canvas + Agg raster for the fill
+    panels.py    # dockable panels
+    commands.py  # bridge to Qt's undo stack
     main_window.py
 ```
 
-El núcleo no importa Qt, así que sirve igual sin interfaz:
+The core does not import Qt, so it works headless just as well:
 
 ```python
 from adcircmesh.core.meshio import load_mesh, save_mesh
 from adcircmesh.core.quality import run_qc
 from adcircmesh.core import repair
 
-m = load_mesh("malla.14")
+m = load_mesh("mesh.14")
 print(repair.renumber_rcm(m))
 
 rep = run_qc(m, dt_target=1.0, min_angle=30.0)
-print(rep.n_errors, "errores")
-print(rep.by_key("angle_10").ids)      # elementos con ángulo mínimo < 10°
+print(rep.n_errors, "errors")
+print(rep.by_key("angle_10").ids)      # elements with minimum angle < 10°
 
-save_mesh("salida.14", m)
+save_mesh("out.14", m)
 ```
 
-### Dos decisiones que explican el rendimiento
+### Two decisions that explain the performance
 
-**Nada se borra de verdad durante la edición.** Los nodos y elementos se marcan
-muertos y solo se compactan al guardar. Los índices nunca se invalidan, así que
-deshacer es un delta pequeño en lugar de una copia de la malla entera.
+**Nothing is really deleted while editing.** Nodes and elements are flagged dead
+and only compacted on save. Indices are never invalidated, so undo is a small
+delta instead of a copy of the whole mesh.
 
-**Dos motores de dibujo, porque difieren 400×.** El wireframe completo de una
-malla de 368.000 aristas se dibuja en ~25 ms con un único `QPainterPath`; ese
-mismo trazado *relleno* tarda 10,8 s, porque rellenar cientos de miles de
-subtrazos es patológico para `QPainter`. Por eso el color va por un ráster Agg
-fuera de pantalla (~0,6 s, con retardo) que se muestra como imagen. Al alejarse,
-las aristas caen por debajo de 2 px y se ocultan solas; los marcadores de nodo
-aparecen solo cuando su separación en pantalla supera los 14 px.
+**Two drawing engines, because they differ by 400×.** The full wireframe of a
+368,000-edge mesh draws in ~25 ms as a single `QPainterPath`; that same path
+*filled* takes 10.8 s, because filling hundreds of thousands of subpaths is
+pathological for `QPainter`. So colour goes through an off-screen Agg raster
+(~0.6 s, debounced) displayed as an image. When you zoom out, edges fall below
+2 px and hide themselves; node markers appear only once their on-screen spacing
+exceeds 14 px.
 
-## Licencia
+## License
 
-MIT — ver [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).
 
-Una nota sobre las dependencias: **PySide6 es LGPLv3**, no MIT. Al usarse como
-biblioteca dinámica desde Python eso es compatible con distribuir este código
-bajo MIT, siempre que quien reciba un binario empaquetado pueda sustituir la
-biblioteca Qt. Fue una de las razones para elegir PySide6 sobre PyQt5, que es
-GPL. `pyqtgraph` es MIT; `numpy`, `scipy` y `matplotlib` son BSD.
+A note on dependencies: **PySide6 is LGPLv3**, not MIT. Used as a dynamically
+linked library from Python that is compatible with distributing this code under
+MIT, as long as anyone receiving a packaged binary can substitute their own Qt
+library. That was one of the reasons for choosing PySide6 over PyQt5, which is
+GPL. `pyqtgraph` is MIT; `numpy`, `scipy` and `matplotlib` are BSD.
 
-## Créditos
+## Credits
 
-- [ADCIRC](https://adcirc.org) — Luettich (UNC Chapel Hill) y Westerink (Notre Dame)
+- [ADCIRC](https://adcirc.org) — Luettich (UNC Chapel Hill) and Westerink (Notre Dame)
 - [SWAN](https://swanmodel.sourceforge.io) — TU Delft
-- Malla de ejemplo: [adcirc/adcirc-testsuite](https://github.com/adcirc/adcirc-testsuite)
+- Sample mesh: [adcirc/adcirc-testsuite](https://github.com/adcirc/adcirc-testsuite)
